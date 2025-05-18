@@ -17,8 +17,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://enfermagem-ia-opus.vercel.app/",  # troque pelo seu domínio real
-        "https://enfermagem-ia.onrender.com"       # adicione o domínio do backend se necessário
+        "https://enfermagem-ia-opus.vercel.app/",
+        "https://enfermagem-ia.onrender.com",
+        "https://enfermagem-ia.vercel.app" 
     ],
     allow_credentials=True,
     allow_methods=["*"],
