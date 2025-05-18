@@ -2,6 +2,11 @@
 
 <img src="./src/assets/imagen.png" alt="Logo Enfermagem IA" width="120" style="display:block;margin:24px auto;" />
 
+## 🟢 Projeto Online
+
+Acesse a versão online do Enfermagem IA:  
+👉 [https://enfermagem-ia.vercel.app/](https://enfermagem-ia.vercel.app/)
+
 ## 📌 Sobre o Projeto
 
 O **Enfermagem IA** é um assistente virtual criado para apoiar profissionais e estudantes de enfermagem, fornecendo respostas rápidas, objetivas e técnicas para dúvidas clínicas, interpretação de prescrições, evolução de prontuário, cuidados, diluições e muito mais.  
@@ -119,7 +124,7 @@ A API estará em [http://localhost:8000](http://localhost:8000)
 - **Frontend:**  
   Deploy pelo [Vercel](https://vercel.com/) (conecte seu GitHub e selecione a pasta `src` como root).
 - **Backend:**  
-  Recomenda-se [Render](https://render.com/) ou [Railway](https://railway.app/) para FastAPI.  
+  Recomenda-se [Render](https://render.com/) para FastAPI.  
   Lembre-se de configurar as variáveis de ambiente no painel da plataforma.
 
 ---
