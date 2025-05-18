@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { askGemini } from '../services/geminiService';
 import '../styles/ChatAssistant.css';
-import imagen from '../assets/imagen.png'; // Importe sua imagem aqui
+import imagen from '../assets/imagen.png';
+
+const apiUrl = import.meta.env.VITE_API_URL; // Use a variável de ambiente para a URL do backend
 
 function formatBotText(text: string) {
     // Negrito: **texto**
@@ -40,7 +42,7 @@ async function enviarImagemParaBackend(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("http://localhost:8000/analisar-imagem/", {
+    const response = await fetch(`${apiUrl}/analisar-imagem/`, {
         method: "POST",
         body: formData,
     });
