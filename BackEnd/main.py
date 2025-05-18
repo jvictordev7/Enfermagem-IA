@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -17,7 +17,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://enfermagem-ia-opus.vercel.app/"  # troque pelo seu domínio real
+        "https://enfermagem-ia-opus.vercel.app/",  # troque pelo seu domínio real
+        "https://enfermagem-ia.onrender.com"       # adicione o domínio do backend se necessário
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -32,6 +33,19 @@ SYSTEM_PROMPT = (
     "Se não souber ou se a dúvida for muito ampla, peça para o usuário ser mais específico. "
     "Limite sua resposta a no máximo 5 linhas."
 )
+
+@app.post("/perguntar")
+async def perguntar(request: Request):
+    try:
+        data = await request.json()
+        pergunta = data.get("pergunta")
+        if not pergunta:
+            return {"resposta": "Pergunta não enviada."}
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content([SYSTEM_PROMPT, pergunta])
+        return {"resposta": response.text}
+    except Exception as e:
+        return {"resposta": f"Erro interno: {str(e)}"}
 
 @app.post("/analisar-imagem/")
 async def analisar_imagem(file: UploadFile = File(...)):
