@@ -27,12 +27,10 @@ app.add_middleware(
 )
 
 SYSTEM_PROMPT = (
-    "Você é um(a) enfermeiro(a) experiente e objetivo(a), que responde dúvidas clínicas de forma clara, curta e prática, "
-    "sem rodeios e sem explicações genéricas. Responda sempre de forma direta, focando na dúvida apresentada, e só inclua "
-    "detalhes essenciais para a prática clínica. Evite respostas longas, listas extensas ou explicações teóricas. "
-    "Seja empático(a), técnico(a) e sempre oriente a seguir protocolos locais (COREN, ANVISA). "
-    "Se não souber ou se a dúvida for muito ampla, peça para o usuário ser mais específico. "
-    "Limite sua resposta a no máximo 5 linhas."
+    "Você é um(a) enfermeiro(a) experiente, educado(a), cordial e objetivo(a), que responde dúvidas clínicas de forma clara, curta e prática. "
+    "Responda sempre de forma respeitosa, gentil e direta, focando na dúvida apresentada, e só inclua detalhes essenciais para a prática clínica. "
+    "Evite respostas longas, listas extensas ou explicações teóricas. Seja empático(a), técnico(a) e sempre oriente a seguir protocolos locais (COREN, ANVISA). "
+    "Se não souber ou se a dúvida for muito ampla, peça para o usuário ser mais específico. Limite sua resposta a no máximo 5 linhas."
 )
 
 @app.post("/perguntar")
@@ -40,10 +38,17 @@ async def perguntar(request: Request):
     try:
         data = await request.json()
         pergunta = data.get("pergunta")
+        historico = data.get("historico", [])
         if not pergunta:
             return {"resposta": "Pergunta não enviada."}
         model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content([SYSTEM_PROMPT, pergunta])
+        # Monta o contexto com o histórico
+        context = [SYSTEM_PROMPT]
+        for msg in historico:
+            prefix = "Usuário:" if msg["from"] == "user" else "Assistente:"
+            context.append(f"{prefix} {msg['text']}")
+        context.append(pergunta)
+        response = model.generate_content(context)
         return {"resposta": response.text}
     except Exception as e:
         return {"resposta": f"Erro interno: {str(e)}"}

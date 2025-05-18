@@ -1,46 +1,32 @@
 import React, { useState } from 'react';
+import { askGemini } from '../services/geminiService'; // Certifique-se de importar!
 import '../styles/ChatAssistant.css';
 import imagen from '../assets/imagen.png';
 
-const apiUrl = import.meta.env.VITE_API_URL; // Use a variável de ambiente para a URL do backend
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function formatBotText(text: string) {
-    // Negrito: **texto**
+    // ... (seu código formatador permanece igual)
     let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-
-    // Títulos de bloco (ex: "Anamnese:", "Conduta:") para <strong> e quebra de linha
     html = html.replace(/^([A-Za-zÀ-ÿ\s]+:)/gm, '<strong>$1</strong><br>');
-
-    // Listas com * para <ul>
     if (/\*\s/.test(text)) {
         html = html.replace(/(\*\s.*?)(?=\*\s|$)/gs, (item) => `<li>${item.replace(/^\*\s/, '')}</li>`);
-        html = html.replace(/(<br>\s*){2,}/g, '<br>'); // Remove br duplicado
+        html = html.replace(/(<br>\s*){2,}/g, '<br>');
         html = html.replace(/(<li>.*?<\/li>)+/gs, (list) => `<ul>${list}</ul>`);
     }
-
-    // Listas numeradas para <ol>
     if (/^\d+\./m.test(text)) {
         html = html.replace(/(\d+\.\s.*?)(?=\d+\.|$)/gs, (item) => `<li>${item.replace(/^\d+\.\s/, '')}</li>`);
         html = `<ol>${html}</ol>`;
     }
-
-    // Quebra de linha dupla para separar blocos
     html = html.replace(/\n{2,}/g, '<br><br>');
-
-    // Quebra de linha simples
     html = html.replace(/\n/g, '<br>');
-
-    // Espaço extra entre blocos
     html = html.replace(/<\/strong><br>/g, '</strong><br><br>');
-
     return html;
 }
 
-// Função para enviar imagem para o backend Python
 async function enviarImagemParaBackend(file: File) {
     const formData = new FormData();
     formData.append("file", file);
-
     const response = await fetch(`${apiUrl}/analisar-imagem/`, {
         method: "POST",
         body: formData,
@@ -83,19 +69,18 @@ const ChatAssistant: React.FC = () => {
             return;
         }
 
-        // Se não, segue o fluxo normal do chat
+        // Envia o histórico junto com a pergunta
         const question = userInput;
-        setMessages([...messages, { from: 'user', text: question }]);
+        setMessages(prev => [...prev, { from: 'user', text: question }]);
         setUserInput('');
         try {
-            // Aqui você pode implementar a chamada ao backend para perguntas de texto
-            const response = await fetch(`${apiUrl}/perguntar`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pergunta: question }),
-            });
-            const data = await response.json();
-            setMessages(prev => [...prev, { from: 'bot', text: data.resposta }]);
+            const history = messages.map(msg => ({
+                from: msg.from,
+                text: msg.text
+            }));
+            // Chama a função do serviço, enviando histórico
+            const answer = await askGemini(question, history);
+            setMessages(prev => [...prev, { from: 'bot', text: answer }]);
         } catch (e) {
             setMessages(prev => [...prev, { from: 'bot', text: 'Erro ao buscar resposta da IA.' }]);
         }
