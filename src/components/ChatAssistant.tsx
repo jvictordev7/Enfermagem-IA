@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { askGemini } from '../services/geminiService';
 import '../styles/ChatAssistant.css';
 import imagen from '../assets/imagen.png';
 
@@ -89,12 +88,14 @@ const ChatAssistant: React.FC = () => {
         setMessages([...messages, { from: 'user', text: question }]);
         setUserInput('');
         try {
-            const history = messages.map(msg => ({
-                role: msg.from === 'user' ? 'user' : 'model',
-                text: msg.text
-            })) as { role: 'user' | 'model', text: string }[];
-            const answer = await askGemini(question, history);
-            setMessages(prev => [...prev, { from: 'bot', text: answer }]);
+            // Aqui você pode implementar a chamada ao backend para perguntas de texto
+            const response = await fetch(`${apiUrl}/perguntar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pergunta: question }),
+            });
+            const data = await response.json();
+            setMessages(prev => [...prev, { from: 'bot', text: data.resposta }]);
         } catch (e) {
             setMessages(prev => [...prev, { from: 'bot', text: 'Erro ao buscar resposta da IA.' }]);
         }
