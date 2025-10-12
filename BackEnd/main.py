@@ -41,7 +41,7 @@ async def perguntar(request: Request):
         historico = data.get("historico", [])
         if not pergunta:
             return {"resposta": "Pergunta não enviada."}
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
         # Monta o contexto com o histórico
         context = [SYSTEM_PROMPT]
         for msg in historico:
@@ -60,7 +60,7 @@ async def analisar_imagem(file: UploadFile = File(...)):
             return {"resposta": "Apenas imagens (JPG, PNG) são suportadas."}
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro-vision')
         response = model.generate_content([
             SYSTEM_PROMPT,
             "Descreva o que vê nesta imagem de forma clínica.",
