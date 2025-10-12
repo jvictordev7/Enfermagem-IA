@@ -139,8 +139,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 📧 Contato
 
 Dúvidas, sugestões ou parcerias?  
-Entre em contato pelo e-mail: **seu_email@exemplo.com**
+Entre em contato pelo e-mail: **joaovictordev7@outlook.com**
 
 ---
 
-> Feito com 💚 por [Seu Nome](https://github.com/seu_usuario)
+> Feito com 💚 por [João Victor](https://github.com/seu_usuario)
