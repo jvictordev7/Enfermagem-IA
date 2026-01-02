@@ -15,7 +15,7 @@ app = FastAPI()
 
 # Model names podem ser sobrescritos via variáveis de ambiente
 DEFAULT_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
-DEFAULT_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-pro")
+DEFAULT_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash")
 
 def _list_models_safe():
     """Tenta listar modelos disponíveis da API (útil para depuração).
