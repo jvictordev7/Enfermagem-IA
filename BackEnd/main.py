@@ -13,6 +13,32 @@ genai.configure(api_key=api_key)
 
 app = FastAPI()
 
+# Model names podem ser sobrescritos via variáveis de ambiente
+DEFAULT_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
+DEFAULT_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-pro")
+
+def _list_models_safe():
+    """Tenta listar modelos disponíveis da API (útil para depuração).
+    Retorna uma lista simples de dicionários com nome e capacidades quando possível.
+    """
+    try:
+        models = genai.list_models()
+        out = []
+        # models pode ser um iterável de dicts/objetos — normalize de forma defensiva
+        for m in models:
+            try:
+                name = getattr(m, 'name', None) or (m.get('name') if isinstance(m, dict) else None) or str(m)
+            except Exception:
+                name = str(m)
+            try:
+                caps = getattr(m, 'supported_methods', None) or getattr(m, 'capabilities', None) or (m.get('capabilities') if isinstance(m, dict) else [])
+            except Exception:
+                caps = []
+            out.append({"name": name, "capabilities": caps})
+        return out
+    except Exception as e:
+        return {"error": str(e)}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -41,7 +67,9 @@ async def perguntar(request: Request):
         historico = data.get("historico", [])
         if not pergunta:
             return {"resposta": "Pergunta não enviada."}
-        model = genai.GenerativeModel('gemini-pro')
+        # Usa o modelo configurado por variável de ambiente, com fallback ao padrão
+        text_model = os.getenv("GEMINI_TEXT_MODEL", DEFAULT_TEXT_MODEL)
+        model = genai.GenerativeModel(text_model)
         # Monta o contexto com o histórico
         context = [SYSTEM_PROMPT]
         for msg in historico:
@@ -51,7 +79,12 @@ async def perguntar(request: Request):
         response = model.generate_content(context)
         return {"resposta": response.text}
     except Exception as e:
-        return {"resposta": f"Erro interno: {str(e)}"}
+        # Se o erro for de modelo não encontrado, tente listar modelos disponíveis
+        err_text = str(e)
+        if "not found" in err_text or "not supported" in err_text or "404" in err_text:
+            models = _list_models_safe()
+            return {"resposta": "Modelo não encontrado ou não suportado. Verifique /models para ver modelos disponíveis.", "erro": err_text, "model_list": models}
+        return {"resposta": f"Erro interno: {err_text}"}
 
 @app.post("/analisar-imagem/")
 async def analisar_imagem(file: UploadFile = File(...)):
@@ -60,7 +93,8 @@ async def analisar_imagem(file: UploadFile = File(...)):
             return {"resposta": "Apenas imagens (JPG, PNG) são suportadas."}
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
-        model = genai.GenerativeModel('gemini-pro-vision')
+        vision_model = os.getenv("GEMINI_VISION_MODEL", DEFAULT_VISION_MODEL)
+        model = genai.GenerativeModel(vision_model)
         response = model.generate_content([
             SYSTEM_PROMPT,
             "Descreva o que vê nesta imagem de forma clínica.",
@@ -68,4 +102,14 @@ async def analisar_imagem(file: UploadFile = File(...)):
         ])
         return {"resposta": response.text}
     except Exception as e:
-        return {"resposta": f"Erro interno: {str(e)}"}
+        err_text = str(e)
+        if "not found" in err_text or "not supported" in err_text or "404" in err_text:
+            models = _list_models_safe()
+            return {"resposta": "Modelo de visão não encontrado ou não suportado. Verifique /models para ver modelos disponíveis.", "erro": err_text, "model_list": models}
+        return {"resposta": f"Erro interno: {err_text}"}
+
+
+@app.get("/models")
+async def list_models():
+    """Retorna a lista de modelos disponíveis (útil para depuração local)."""
+    return _list_models_safe()
