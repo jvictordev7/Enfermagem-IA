@@ -81,6 +81,8 @@ async def perguntar(request: Request):
     except Exception as e:
         # Se o erro for de modelo não encontrado, tente listar modelos disponíveis
         err_text = str(e)
+        if "429" in err_text or "quota" in err_text.lower():
+            return {"resposta": "Limite de uso da API atingido. Tente novamente em alguns minutos ou atualize seu plano em https://ai.google.dev/gemini-api/docs/rate-limits."}
         if "not found" in err_text or "not supported" in err_text or "404" in err_text:
             models = _list_models_safe()
             return {"resposta": "Modelo não encontrado ou não suportado. Verifique /models para ver modelos disponíveis.", "erro": err_text, "model_list": models}
@@ -103,6 +105,8 @@ async def analisar_imagem(file: UploadFile = File(...)):
         return {"resposta": response.text}
     except Exception as e:
         err_text = str(e)
+        if "429" in err_text or "quota" in err_text.lower():
+            return {"resposta": "Limite de uso da API atingido. Tente novamente em alguns minutos ou atualize seu plano em https://ai.google.dev/gemini-api/docs/rate-limits."}
         if "not found" in err_text or "not supported" in err_text or "404" in err_text:
             models = _list_models_safe()
             return {"resposta": "Modelo de visão não encontrado ou não suportado. Verifique /models para ver modelos disponíveis.", "erro": err_text, "model_list": models}
